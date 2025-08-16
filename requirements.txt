@@ -1,0 +1,14 @@
+pandas
+numpy
+seaborn
+matplotlib
+scikit-learn
+feature_engine
+catboost
+xgboost
+optuna
+optuna-integration
+Flask
+sklearn_pandas
+openpyxl
+#-e .

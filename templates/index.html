@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing Price Predictor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+        }
+        .feature-card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-home me-2"></i>Housing Predictor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('predict_file') }}">Upload & Predict</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('predict_single') }}">Single Prediction</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-home me-3"></i>
+                        Housing Price Prediction Platform
+                    </h1>
+                    <p class="lead mb-5">Upload your housing data and get instant price predictions using our advanced ML model. Process thousands of properties in seconds!</p>
+                    <div class="d-grid gap-3 d-md-flex justify-content-center">
+                        <a href="{{ url_for('predict_file') }}" class="btn btn-light btn-lg btn-custom text-white me-md-3">
+                            <i class="fas fa-upload me-2"></i>Upload File & Predict
+                        </a>
+                        <a href="{{ url_for('predict_single') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-edit me-2"></i>Single Prediction
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Powerful Features</h2>
+                    <p class="lead text-muted">Everything you need for efficient housing price predictions</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-file-csv fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Multiple File Formats</h5>
+                            <p class="card-text">Support for CSV, Excel (.xlsx, .xls) files up to 16MB. Process thousands of properties at once.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-tachometer-alt fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">Fast Processing</h5>
+                            <p class="card-text">Lightning-fast predictions with real-time processing and instant results display.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-download fa-3x text-info"></i>
+                            </div>
+                            <h5 class="card-title">Download Results</h5>
+                            <p class="card-text">Download your price predictions as CSV files with all original property data plus prediction results.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="h2 fw-bold text-primary">70+</div>
+                    <p class="text-muted">Features Supported</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="h2 fw-bold text-success">16MB</div>
+                    <p class="text-muted">Max File Size</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="h2 fw-bold text-info">95%</div>
+                    <p class="text-muted">Accuracy Rate</p>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="h2 fw-bold text-warning">0.1279</div>
+                    <p class="text-muted">RMSE</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="display-6 fw-bold mb-4">How It Works</h2>
+                    <div class="row g-4 mt-4">
+                        <div class="col-md-4">
+                            <div class="step-item">
+                                <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <strong>1</strong>
+                                </div>
+                                <h5>Upload Your Data</h5>
+                                <p class="text-muted">Upload CSV or Excel files with your property features</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="step-item">
+                                <div class="step-number bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <strong>2</strong>
+                                </div>
+                                <h5>Process & Predict</h5>
+                                <p class="text-muted">Our ML model processes your data and generates price predictions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="step-item">
+                                <div class="step-number bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                    <strong>3</strong>
+                                </div>
+                                <h5>Download Results</h5>
+                                <p class="text-muted">View results online or download as CSV file</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4">
+        <div class="container text-center">
+            <p>&copy; 2025 Housing Price Prediction Platform</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results - Housing Predictor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .results-table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .table th {
+            background-color: #343a40;
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+        .table td {
+            border-color: #dee2e6;
+            vertical-align: middle;
+        }
+        .prediction-badge {
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-home me-2"></i>Housing Predictor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('predict_single') }}">Single Prediction</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-chart-bar text-success me-3"></i>
+                Prediction Results
+            </h1>
+            <p class="lead text-muted">Analysis complete for: <strong>{{ filename }}</strong></p>
+        </div>
+
+        <!-- Success Alert -->
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Success!</strong> Processed {{ total_records }} records successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card stats-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-database fa-2x mb-3"></i>
+                        <h3 class="fw-bold">{{ "{:,}".format(total_records) }}</h3>
+                        <p class="mb-0">Total Records</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card stats-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-2x mb-3"></i>
+                        <h3 class="fw-bold">${{ "{:,.2f}".format(summary_stats.prediction_mean) }}</h3>
+                        <p class="mb-0">Average Prediction</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card stats-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-arrow-up fa-2x mb-3"></i>
+                        <h3 class="fw-bold">${{ "{:,.2f}".format(summary_stats.prediction_max) }}</h3>
+                        <p class="mb-0">Maximum Value</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card stats-card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-arrow-down fa-2x mb-3"></i>
+                        <h3 class="fw-bold">${{ "{:,.2f}".format(summary_stats.prediction_min) }}</h3>
+                        <p class="mb-0">Minimum Value</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center">
+                    <div>
+                        <h4><i class="fas fa-table me-2"></i>Preview Results (First 10 Records)</h4>
+                        <p class="text-muted mb-0">Showing first 10 records with predictions</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('download_results') }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-download me-2"></i>Download Full Results
+                        </a>
+                        <a href="{{ url_for('predict_file') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload me-2"></i>Upload Another File
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card results-table">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    {{ df_html|safe }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Statistics -->
+        <div class="row mt-5">
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Statistical Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Mean:</strong><br>
+                                <span class="text-muted">${{ "{:,.2f}".format(summary_stats.prediction_mean) }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Std Deviation:</strong><br>
+                                <span class="text-muted">${{ "{:,.2f}".format(summary_stats.prediction_std) }}</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Minimum:</strong><br>
+                                <span class="text-muted">${{ "{:,.2f}".format(summary_stats.prediction_min) }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Maximum:</strong><br>
+                                <span class="text-muted">${{ "{:,.2f}".format(summary_stats.prediction_max) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Processing Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Original File:</strong> {{ filename }}</p>
+                        <p><strong>Records Processed:</strong> {{ "{:,}".format(total_records) }}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-success">Completed Successfully</span></p>
+                        <p><strong>Download:</strong> Results available for download as CSV</p>
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Results will be available for download during this session.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="text-center mt-5 mb-4">
+            <div class="d-grid gap-2 d-md-flex justify-content-center">
+                <a href="{{ url_for('predict_file') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Process Another File
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-home me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add some styling to the dynamically generated table
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('#results-table');
+            if (table) {
+                table.classList.add('table', 'table-striped', 'table-hover');
+                
+                // Style prediction column if it exists
+                const predictionCells = table.querySelectorAll('td');
+                predictionCells.forEach(cell => {
+                    const text = cell.textContent.trim();
+                    if (!isNaN(text) && text !== '' && parseFloat(text) !== 0) {
+                        const value = parseFloat(text);
+                        if (cell.cellIndex === table.rows[0].cells.length - 1) { // Last column (predictions)
+                            cell.innerHTML = `<span class="prediction-badge bg-primary text-white">$${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+                        }
+                    }
+                });
+            }
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

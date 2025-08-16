@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Prediction - Housing Predictor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form-section { background-color: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .result-card { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-radius: 15px; box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3); }
+        .form-floating input, .form-floating select { border: 2px solid #e9ecef; transition: border-color 0.3s ease; }
+        .form-floating input:focus, .form-floating select:focus { border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
+        .feature-group { border-left: 4px solid #007bff; padding-left: 20px; margin-bottom: 30px; }
+        .btn-predict { background: linear-gradient(45deg, #007bff, #0056b3); border: none; padding: 15px 40px; font-size: 18px; font-weight: 600; border-radius: 50px; transition: transform 0.3s ease; }
+        .btn-predict:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3); }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-home me-2"></i>Housing Predictor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('predict_file') }}">Upload & Predict</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('predict_single') }}">Single Prediction</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Page Header -->
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold">
+                        <i class="fas fa-calculator text-primary me-3"></i>
+                        Single Record Prediction
+                    </h1>
+                    <p class="lead text-muted">Enter values for 10 key features</p>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Prediction Result -->
+                {% if results %}
+                <div class="result-card p-4 mb-5 text-center">
+                    <i class="fas fa-trophy fa-3x mb-3"></i>
+                    <h3>Prediction Result</h3>
+                    <h2 class="display-4 fw-bold">${{ "{:,.2f}".format(results) }}</h2>
+                    <p class="mb-0">Estimated Sale Price</p>
+                </div>
+
+                <!-- Input Data Summary -->
+                {% if input_data %}
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Input Data Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for key, value in input_data.items() %}
+                            <div class="col-md-4 mb-2">
+                                <strong>{{ key }}:</strong> {{ value }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                <!-- Single Prediction Form -->
+                <div class="form-section p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4><i class="fas fa-edit me-2"></i>Enter Feature Values</h4>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearForm()">
+                                <i class="fas fa-eraser me-1"></i>Clear All
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="fillSampleData()">
+                                <i class="fas fa-magic me-1"></i>Sample Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <form method="POST" id="predictionForm">
+                        <div class="feature-group">
+                            <h6 class="text-primary mb-3"><i class="fas fa-list-ol me-2"></i>10 Key Features</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="GrLivArea" name="GrLivArea" step="any" placeholder="GrLivArea" min="200" max="6000">
+                                        <label for="GrLivArea">GrLivArea (sq ft)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-select" id="OverallQual" name="OverallQual">
+                                            <option value="">Select OverallQual</option>
+                                            <option value="10">10 - Very Excellent</option>
+                                            <option value="9">9 - Excellent</option>
+                                            <option value="8">8 - Very Good</option>
+                                            <option value="7">7 - Good</option>
+                                            <option value="6">6 - Above Average</option>
+                                            <option value="5">5 - Average</option>
+                                            <option value="4">4 - Below Average</option>
+                                            <option value="3">3 - Fair</option>
+                                            <option value="2">2 - Poor</option>
+                                            <option value="1">1 - Very Poor</option>
+                                        </select>
+                                        <label for="OverallQual">OverallQual</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="TotalBsmtSF" name="TotalBsmtSF" step="any" placeholder="TotalBsmtSF" min="0" max="7000">
+                                        <label for="TotalBsmtSF">TotalBsmtSF (sq ft)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-select" id="Neighborhood" name="Neighborhood">
+                                            <option value="">Select Neighborhood</option>
+                                            <option value="Blmngtn">Blmngtn - Bloomington Heights</option>
+                                            <option value="Blueste">Blueste - Bluestem</option>
+                                            <option value="BrDale">BrDale - Briardale</option>
+                                            <option value="BrkSide">BrkSide - Brookside</option>
+                                            <option value="ClearCr">ClearCr - Clear Creek</option>
+                                            <option value="CollgCr">CollgCr - College Creek</option>
+                                            <option value="Crawfor">Crawfor - Crawford</option>
+                                            <option value="Edwards">Edwards - Edwards</option>
+                                            <option value="Gilbert">Gilbert - Gilbert</option>
+                                            <option value="IDOTRR">IDOTRR - Iowa DOT and Rail Road</option>
+                                            <option value="MeadowV">MeadowV - Meadow Village</option>
+                                            <option value="Mitchel">Mitchel - Mitchell</option>
+                                            <option value="NAmes">NAmes - North Ames</option>
+                                            <option value="NoRidge">NoRidge - Northridge</option>
+                                            <option value="NPkVill">NPkVill - Northpark Villa</option>
+                                            <option value="NridgHt">NridgHt - Northridge Heights</option>
+                                            <option value="NWAmes">NWAmes - Northwest Ames</option>
+                                            <option value="OldTown">OldTown - Old Town</option>
+                                            <option value="SWISU">SWISU - South & West of ISU</option>
+                                            <option value="Sawyer">Sawyer - Sawyer</option>
+                                            <option value="SawyerW">SawyerW - Sawyer West</option>
+                                            <option value="Somerst">Somerst - Somerset</option>
+                                            <option value="StoneBr">StoneBr - Stone Brook</option>
+                                            <option value="Timber">Timber - Timberland</option>
+                                            <option value="Veenker">Veenker - Veenker</option>
+                                        </select>
+                                        <label for="Neighborhood">Neighborhood</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="YrSold" name="YrSold" placeholder="YrSold" min="2005" max="2010">
+                                        <label for="YrSold">YrSold (YYYY)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-select" id="OverallCond" name="OverallCond">
+                                            <option value="">Select OverallCond</option>
+                                            <option value="10">10 - Very Excellent</option>
+                                            <option value="9">9 - Excellent</option>
+                                            <option value="8">8 - Very Good</option>
+                                            <option value="7">7 - Good</option>
+                                            <option value="6">6 - Above Average</option>
+                                            <option value="5">5 - Average</option>
+                                            <option value="4">4 - Below Average</option>
+                                            <option value="3">3 - Fair</option>
+                                            <option value="2">2 - Poor</option>
+                                            <option value="1">1 - Very Poor</option>
+                                        </select>
+                                        <label for="OverallCond">OverallCond</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="LotArea" name="LotArea" step="any" placeholder="LotArea" min="1000" max="250000">
+                                        <label for="LotArea">LotArea (sq ft)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="YearBuilt" name="YearBuilt" placeholder="YearBuilt" min="1850" max="2010">
+                                        <label for="YearBuilt">YearBuilt</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="GarageArea" name="GarageArea" step="any" placeholder="GarageArea" min="0" max="1700">
+                                        <label for="GarageArea">GarageArea (sq ft)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="YearRemodAdd" name="YearRemodAdd" placeholder="YearRemodAdd" min="1900" max="2010">
+                                        <label for="YearRemodAdd">YearRemodAdd</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-predict">
+                                <i class="fas fa-magic me-2"></i>
+                                Generate Prediction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Help Section -->
+                <div class="card mt-4 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Single Predictions</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="mb-0">
+                            <li>For <strong>numerical features</strong>: Enter exact values (decimals allowed)</li>
+                            <li>For <strong>categorical features</strong>: Select from dropdown options</li>
+                            <li>For <strong>missing values</strong>: Leave fields empty (handled by preprocessor)</li>
+                            <li>Use <strong>"Sample Data"</strong> button to fill with example values</li>
+                            <li>For bulk predictions, use the <a href="{{ url_for('predict_file') }}" class="text-decoration-none">file upload</a> feature</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Clear all form fields
+        function clearForm() {
+            document.getElementById('predictionForm').reset();
+        }
+
+        // Fill form with sample data
+        function fillSampleData() {
+            document.getElementById('GrLivArea').value = '1500';
+            document.getElementById('OverallQual').value = '7';
+            document.getElementById('TotalBsmtSF').value = '900';
+            document.getElementById('Neighborhood').value = 'CollgCr';
+            document.getElementById('YrSold').value = '2009';
+            document.getElementById('OverallCond').value = '5';
+            document.getElementById('LotArea').value = '8000';
+            document.getElementById('YearBuilt').value = '1995';
+            document.getElementById('GarageArea').value = '480';
+            document.getElementById('YearRemodAdd').value = '2005';
+        }
+
+        // Basic validation
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            const ranges = {
+                'GrLivArea': { min: 200, max: 6000, name: 'GrLivArea' },
+                'TotalBsmtSF': { min: 0, max: 7000, name: 'TotalBsmtSF' },
+                'YrSold': { min: 2005, max: 2010, name: 'YrSold' },
+                'LotArea': { min: 1000, max: 250000, name: 'LotArea' },
+                'YearBuilt': { min: 1850, max: 2010, name: 'YearBuilt' },
+                'YearRemodAdd': { min: 1900, max: 2010, name: 'YearRemodAdd' },
+                'GarageArea': { min: 0, max: 1700, name: 'GarageArea' }
+            };
+
+            let hasError = false;
+            let errorMessage = '';
+
+            // Check numeric ranges
+            for (const [fieldId, range] of Object.entries(ranges)) {
+                const input = document.getElementById(fieldId);
+                if (input && input.value !== '') {
+                    const value = parseFloat(input.value);
+                    if (value < range.min || value > range.max) {
+                        hasError = true;
+                        errorMessage += `${range.name} must be between ${range.min} and ${range.max}. `;
+                        input.classList.add('is-invalid');
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                }
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                alert('Validation Error: ' + errorMessage);
+                return false;
+            }
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert-danger');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
